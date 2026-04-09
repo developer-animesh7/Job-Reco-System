@@ -19,3 +19,9 @@ db.sqlite3
 
 # Uploaded/temporary documents
 *.pdf
+
+# Test artifacts
+*_test.log
+*test_output*.txt
+*test_results*.txt
+.tmp_*test*.log
