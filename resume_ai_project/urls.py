@@ -18,9 +18,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from resume_analyzer.views import analyze_resume
+from resume_analyzer.views import analyze_resume, upload_resume
 
 urlpatterns = [
+    path('', upload_resume, name='home'),
     path('admin/', admin.site.urls),
     path('analyze-resume/', analyze_resume, name='analyze-resume-root'),
     path('resumes/', include('resume_analyzer.urls')),

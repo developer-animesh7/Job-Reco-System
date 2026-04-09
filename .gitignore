@@ -7,4 +7,15 @@ db.sqlite3
 /staticfiles/
 
 .env
+.env.*
 .venv/
+
+# Sensitive credentials/certificates
+*.key
+*.pem
+*.p12
+*.crt
+*api*key*
+
+# Uploaded/temporary documents
+*.pdf
