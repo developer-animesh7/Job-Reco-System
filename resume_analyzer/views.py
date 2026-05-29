@@ -19,7 +19,7 @@ except Exception:
 		raise RuntimeError("extract_text is not available")
 
 
-# Gemini AI Integration for skill extraction (REPLACES manual parsing)
+# Local resume intelligence helpers for skill extraction and suggestions.
 try:
 	from resume_analyzer.gemini_integration import extract_skills_with_gemini
 	from resume_analyzer.gemini_integration import extract_skills_safe
@@ -85,6 +85,10 @@ def _validate_resume_file(uploaded_file):
 	return validate_resume_upload(uploaded_file)
 
 
+def _get_uploaded_resume_file(request):
+	return request.FILES.get("file") or request.FILES.get("resume")
+
+
 def _resolve_request_user(request):
 	if request.user.is_authenticated:
 		return request.user
@@ -98,17 +102,16 @@ def _resolve_request_user(request):
 
 
 def _extract_skills_from_resume(resume):
-	"""Extract skills from resume using Gemini API instead of manual parsing."""
+	"""Extract skills from resume using local written-code parsing."""
 	text = extract_text(resume.file.path)
 	resume.extracted_text = text
 	resume.save(update_fields=["extracted_text"])
 
-	# Using Gemini API for skill extraction (replacing manual/ML parsing)
-	logger.info(f"Extracting skills from resume {resume.id} using Gemini API")
+	logger.info("Extracting skills from resume %s using local parser", resume.id)
 	gemini_result = extract_skills_with_gemini(text)
 	
 	if "error" in gemini_result:
-		logger.warning(f"Gemini skill extraction error: {gemini_result.get('error')}")
+		logger.warning("Local skill extraction warning: %s", gemini_result.get("error"))
 	
 	skills = gemini_result.get("skills", [])
 	logger.info("Extracted skills for resume_id=%s: %s", resume.id, skills)
@@ -159,7 +162,7 @@ def _extract_text_preview_from_resume(resume, preview_chars=300):
 
 
 def _extract_structured_data_from_resume(resume):
-	"""Phase 2 step: extract structured fields from resume text using Gemini."""
+	"""Phase 2 step: extract structured fields from resume text locally."""
 	logger.info("Phase 2 start: structured extraction for resume_id=%s", resume.id)
 	text = extract_text(resume.file.path)
 	text = sanitize_text(text)
@@ -215,7 +218,7 @@ def _extract_safe_skills_from_resume(resume):
 	return {
 		"skills": skills,
 		"skill_count": len(skills),
-		"source": "gemini+fallback"
+		"source": "local"
 	}
 
 
@@ -399,7 +402,7 @@ def upload_resume(request):
 
 	try:
 		try:
-			uploaded_file = request.FILES.get("file")
+			uploaded_file = _get_uploaded_resume_file(request)
 			validation_error = _validate_resume_file(uploaded_file)
 			if validation_error:
 				logger.debug("Upload validation failed: %s", validation_error)
@@ -461,7 +464,7 @@ def analyze_resume(request):
 
 	try:
 		try:
-			uploaded_file = request.FILES.get("file")
+			uploaded_file = _get_uploaded_resume_file(request)
 			validation_error = _validate_resume_file(uploaded_file)
 			if validation_error:
 				logger.debug("Analyze validation failed: %s", validation_error)
@@ -522,7 +525,7 @@ def phase1_extract_text(request):
 	logger.info("Phase 1 endpoint called by user_id=%s", request_user.id)
 
 	try:
-		uploaded_file = request.FILES.get("file")
+		uploaded_file = _get_uploaded_resume_file(request)
 		validation_error = _validate_resume_file(uploaded_file)
 		if validation_error:
 			logger.debug("Phase 1 validation failed: %s", validation_error)
@@ -547,7 +550,7 @@ def phase2_extract_structured(request):
 	logger.info("Phase 2 endpoint called by user_id=%s", request_user.id)
 
 	try:
-		uploaded_file = request.FILES.get("file")
+		uploaded_file = _get_uploaded_resume_file(request)
 		validation_error = _validate_resume_file(uploaded_file)
 		if validation_error:
 			logger.debug("Phase 2 validation failed: %s", validation_error)
@@ -572,7 +575,7 @@ def phase3_safe_extract(request):
 	logger.info("Phase 3 endpoint called by user_id=%s", request_user.id)
 
 	try:
-		uploaded_file = request.FILES.get("file")
+		uploaded_file = _get_uploaded_resume_file(request)
 		validation_error = _validate_resume_file(uploaded_file)
 		if validation_error:
 			logger.debug("Phase 3 validation failed: %s", validation_error)

@@ -23,6 +23,7 @@ from resume_analyzer.views import analyze_resume, upload_resume
 urlpatterns = [
     path('', upload_resume, name='home'),
     path('admin/', admin.site.urls),
+    path('', include('recommender.urls')),
     path('analyze-resume/', analyze_resume, name='analyze-resume-root'),
     path('resumes/', include('resume_analyzer.urls')),
 ]

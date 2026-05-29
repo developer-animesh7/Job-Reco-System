@@ -1,6 +1,8 @@
 __pycache__/
 *.py[cod]
 *.sqlite3
+*.sqlite3-journal
+*-journal
 db.sqlite3
 
 /media/
@@ -19,6 +21,8 @@ db.sqlite3
 
 # Uploaded/temporary documents
 *.pdf
+*.doc
+*.docx
 
 # Test artifacts
 *_test.log

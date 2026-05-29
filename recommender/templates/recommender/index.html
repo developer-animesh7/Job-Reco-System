@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Job Analyzer</title>
+<style>
+:root {
+  --bg: #f7faf8;
+  --panel: #ffffff;
+  --ink: #172126;
+  --muted: #607078;
+  --accent: #0f766e;
+  --accent-dark: #115e59;
+  --line: #d6e5e1;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, #fbfefd, var(--bg));
+  color: var(--ink);
+}
+
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 42px 18px 64px;
+}
+
+.hero {
+  background: #0f766e;
+  color: #f4fffd;
+  padding: 34px;
+  border-radius: 8px;
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.hero p {
+  max-width: 760px;
+  margin: 0;
+  color: #dff7f3;
+}
+
+.panel {
+  margin-top: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 14px 38px rgba(21, 33, 38, 0.06);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+h2, h3 { margin: 0 0 8px; }
+p { line-height: 1.55; }
+.muted { color: var(--muted); margin: 0; }
+
+input[type="file"] {
+  width: 100%;
+  padding: 13px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.form-row { margin-bottom: 18px; }
+.helptext { color: var(--muted); display: block; margin-top: 6px; }
+.errorlist { color: #991b1b; }
+
+.button {
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.badge {
+  background: #e4f4f1;
+  color: var(--accent-dark);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.message {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-radius: 8px;
+  background: #fce8e6;
+  color: #991b1b;
+}
+
+.result-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.link-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.link-card a {
+  color: var(--accent-dark);
+  font-weight: 700;
+  word-break: break-word;
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <h1>Resume Job Analyzer</h1>
+    <p>Legacy upload flow connected to the stronger current recommendation engine.</p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Analyze Resume</h2>
+        <p class="muted">Upload a PDF or DOCX resume to get skill-aware role matches and apply links.</p>
+      </div>
+      <span class="badge">PDF or DOCX</span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="resume-form">
+      {% csrf_token %}
+      <div class="form-row">
+        {{ form.resume.label_tag }}
+        {{ form.resume }}
+        {% if form.resume.help_text %}
+          <span class="helptext">{{ form.resume.help_text }}</span>
+        {% endif %}
+        {{ form.resume.errors }}
+      </div>
+      <button class="button" type="submit" id="submit-button">Analyze Resume</button>
+    </form>
+
+    {% if error %}
+      <div class="message">{{ error }}</div>
+    {% endif %}
+  </section>
+
+  {% if analysis_text %}
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Resume Result</h2>
+          <p class="muted">{{ resume_filename }}</p>
+        </div>
+        <span class="badge">Current engine</span>
+      </div>
+
+      <h3>Analysis</h3>
+      <p>{{ analysis_text }}</p>
+
+      <h3>Recommended Roles</h3>
+      <div class="result-grid">
+        {% for role in roles %}
+          <article class="link-card">
+            <h3>{{ role.title }}</h3>
+            <p class="muted">Matched using extracted skills and weighted job scoring.</p>
+            <p><a href="{{ role.linkedin_link }}" target="_blank" rel="noopener noreferrer">LinkedIn jobs</a></p>
+            <p><a href="{{ role.naukri_link }}" target="_blank" rel="noopener noreferrer">Naukri jobs</a></p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</main>
+<script>
+const form = document.getElementById("resume-form");
+const button = document.getElementById("submit-button");
+if (form && button) {
+  form.addEventListener("submit", () => {
+    button.disabled = true;
+    button.textContent = "Analyzing...";
+  });
+}
+</script>
+</body>
+</html>
